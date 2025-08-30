@@ -4,8 +4,8 @@ const {createTask,getUserTask,getAlluser,tasksStats,updateTaskstatus}=require(".
 const {onlyAdmin}=require('../Middleware/onlyAdmin')
 const {verifyToken}=require("../Middleware/verifyToken")
 module.exports=(io)=>{
-    router.post("/create",onlyAdmin,createTask)
-router.put("/status/:id",verifyToken,updateTaskstatus(io))
+    router.post("/create",onlyAdmin,createTask(io))
+router.put("/status/:id",verifyToken,updateTaskstatus(io))//importnant line
 router.get("/get",verifyToken,getUserTask)
 router.get("/getusers",onlyAdmin,getAlluser)
 router.get("/stats",verifyToken,tasksStats)

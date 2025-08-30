@@ -12,7 +12,7 @@ const server=http.createServer(app)
 
 const io=new Server(server,{
     cors:{
-        origin:"http://localhost:5174",
+        origin:process.env.FRONTEND_URL,
         methods:['GET','POST']
     }
 })
@@ -31,10 +31,18 @@ app.use("/api/user",userRoutes)
 app.use("/api/task",taskRoutes(io))
 
 io.on("connection",(socket)=>{
+   
     console.log('A user connected',socket.id);
+   // Listen for a 'joinRoom' event from the client and add the socket to the 'admin' room.
+   socket.on('joinRoom',(data)=>{
+    if(data.roomName){
+        socket.join(data.roomName)
+     }
+     
+   })
+   
     socket.on("disconnect",()=>{
         console.log('user disconnected',socket.id);
-
 
     })
     

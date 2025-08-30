@@ -4,7 +4,7 @@ const { userModel } = require("../Models/User")
 const cache=new Map()
 
 
-const createTask=asyncHandler(async(req,resp)=>{
+const createTask=(io)=>asyncHandler(async(req,resp)=>{
    try{
     const user=req.user
   const {title,description,id}=req.body
@@ -22,10 +22,14 @@ const createTask=asyncHandler(async(req,resp)=>{
     return resp.status(403).json({status:false,message:"you cannot assign task to Manager"})
 
   }
-
+  
    const newTask=await taskModel.create({
     title,description,assignedToUserId:id
    })
+   //notify specific user
+   io.to(id).emit('taskCreated',newTask)
+   console.log('emit taskcreated event for user',id);
+   
    return resp.status(201).json({status:true,message:"Task created successfully",data:newTask})
 
 
@@ -190,42 +194,45 @@ const tasksStats=asyncHandler(async(req,resp)=>{
 
 const updateTaskstatus=(io)=>asyncHandler(async(req,resp)=>{
     try{
-        console.log("api call");
         
         const user=req.user
         const id=req.params.id
+        
         //user update only own task
-        const tasks=await taskModel.findById(id)
-      
-    
+        const tasks=await taskModel.findById(id) 
         if(user.role!=="admin" && user.role!=="manager"){
             
             if(tasks.assignedToUserId.toString()!==user.id){
                     return resp.status(401).json({status:false,message:"Forbidden"})
-
             }
            if(tasks.status==="completed"){
-            return resp.status(422).json({status:true,message:"Taks is already completed"})
-
+            return resp.status(422).json({status:true,message:"Task is already completed"})
            }
            tasks.status="completed"
           const result= await tasks.save()  
              // After successful update, emit a socket event
-             console.log("Emitting 'taskUpdated' event with data:", result); // Add this line
-        io.emit('taskUpdated', result);          
+            //  console.log("Emitting 'taskUpdated' event to aspecific user: done", result); 
+                        
+             // Notify the specific user
+             io.to(user.id).emit('taskUpdated',result)
+            // Notify the admin and manager room
+            // console.log("Emitting 'taskUpdated' event to admin: done", result); 
+
+             io.to('admin').emit('adminTaskUpdated',result)
+            
             return resp.status(200).json({status:true,message:"Task update successfully",data:result})
-
         }
-        //admin and manager can update of all taks status
+        //admin and manager can update of all tasks status
         if(tasks.status==="completed"){
-            return resp.status(422).json({status:true,message:"Taks is already completed"})
-
+            return resp.status(422).json({status:true,message:"Task is already completed"})
            }
            tasks.status="completed"
            const result= await tasks.save() 
-           console.log("Emitting 'taskUpdated' event with data:", result); // Add this line 
-           io.emit('taskUpdated', result);          
-          
+           console.log("Emitting 'adminTaskUpdated' to 'admin' room:", result);
+           io.to('admin').emit('adminTaskUpdated',result)    
+           const assignedUserId=tasks.assignedToUserId.toString() 
+           console.log("Emitting 'taskUpdated' to 'user' room:", result);
+           io.to(assignedUserId).emit('taskUpdated',result)  
              return resp.status(200).json({status:true,message:"Task update successfully",data:result})
     }
     catch(err){

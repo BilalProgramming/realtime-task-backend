@@ -13,7 +13,7 @@ const server=http.createServer(app)
 
 const allowedOrigins = [
     'http://localhost:5173',   // or whatever your dev port is
-    'https://realtime-task-frontend.vercel.app'
+    process.env.FRONTEND_URL
   ];
   
   const io = new Server(server, {

@@ -10,14 +10,19 @@ const taskRoutes=require("./Routes/taskRoutes")
 const app=express()
 const server=http.createServer(app)
 
-const io=new Server(server,{
-    cors:{
-        origin:process.env.FRONTEND_URL,
-        methods:['GET','POST'],
-        credentials: true
 
+const allowedOrigins = [
+    'http://localhost:5173',   // or whatever your dev port is
+    'https://realtime-task-frontend.vercel.app'
+  ];
+  
+  const io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ['GET', 'POST']
     }
-})
+  });
+  
 const secretKet=process.env.SECRET_KEY
 if(!secretKet){
     console.log("secret key is missing")
@@ -28,7 +33,7 @@ if(!secretKet){
 connectDb()
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
+    origin: allowedOrigins,
     methods: ['GET','POST'],
     credentials: true
   }));

@@ -13,7 +13,9 @@ const server=http.createServer(app)
 const io=new Server(server,{
     cors:{
         origin:process.env.FRONTEND_URL,
-        methods:['GET','POST']
+        methods:['GET','POST'],
+        credentials: true
+
     }
 })
 const secretKet=process.env.SECRET_KEY
@@ -25,7 +27,13 @@ if(!secretKet){
 
 connectDb()
 
-app.use(cors())
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ['GET','POST'],
+    credentials: true
+  }));
+  
+  
 app.use(express.json())
 app.use("/api/user",userRoutes)
 app.use("/api/task",taskRoutes(io))

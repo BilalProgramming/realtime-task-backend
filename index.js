@@ -12,9 +12,11 @@ const server=http.createServer(app)
 
 
 const allowedOrigins = [
-    'http://localhost:5173',   // or whatever your dev port is
-    process.env.FRONTEND_URL
-  ];
+    'http://localhost:5173',
+    process.env.FRONTEND_URL 
+  ].filter(Boolean); // removes undefined
+  console.log('Allowed Origins:', allowedOrigins);
+
   
   const io = new Server(server, {
     cors: {
@@ -34,7 +36,7 @@ connectDb()
 
 app.use(cors({
     origin: allowedOrigins,
-    methods: ['GET','POST'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // include all
     credentials: true
   }));
   
